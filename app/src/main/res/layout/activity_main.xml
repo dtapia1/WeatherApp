@@ -48,7 +48,10 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="5dp"
         android:textColor="@android:color/white"
-        android:textSize="24sp" />
+        android:textSize="24sp"
+        tools:text="South Padre Island, Texas"
+        android:layout_toRightOf="@+id/iconImageView"
+        android:layout_marginLeft="5dp"/>
 
     <TextView
         android:layout_width="wrap_content"
