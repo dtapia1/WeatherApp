@@ -20,6 +20,9 @@ public class Day implements Parcelable{
     private String mIcon;
     private String mTimezone;
 
+    public long mSunriseTime;
+    public long mSunsetTime;
+
     public long getTime() {
         return mTime;
     }
@@ -69,7 +72,7 @@ public class Day implements Parcelable{
         mTimezone = timezone;
     }
     public int getIconId(){
-        return Forecast.getIconId(mIcon);
+        return Forecast.getIconId(mIcon, mTime, mSunsetTime);
     }
 
     public String getDayOfTheWeek(){
@@ -84,7 +87,14 @@ public class Day implements Parcelable{
     }
 
     public String getDate(){
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd");
+        SimpleDateFormat formatter = new SimpleDateFormat(", dd");
+        formatter.setTimeZone(TimeZone.getTimeZone(mTimezone));
+        Date dateTime = new Date(mTime * 1000);
+        return formatter.format(dateTime);
+    }
+
+    public String getMonth(){
+        SimpleDateFormat formatter = new SimpleDateFormat("MMMM");
         formatter.setTimeZone(TimeZone.getTimeZone(mTimezone));
         Date dateTime = new Date(mTime * 1000);
         return formatter.format(dateTime);
@@ -130,4 +140,20 @@ public class Day implements Parcelable{
             return new Day[size];
         }
     };
+
+    public long getSunriseTime() {
+        return mSunriseTime;
+    }
+
+    public void setSunriseTime(long sunriseTime) {
+        mSunriseTime = sunriseTime;
+    }
+
+    public long getSunsetTime() {
+        return mSunsetTime;
+    }
+
+    public void setSunsetTime(long sunsetTime) {
+        mSunsetTime = sunsetTime;
+    }
 }

@@ -16,6 +16,8 @@ public class Hour implements Parcelable {
     private double mTemperature;
     private String mIcon;
     private String mTimezone;
+    private long mSunriseTime;
+    private long mSunsetTime;
 
     public Hour(){}
 
@@ -48,7 +50,7 @@ public class Hour implements Parcelable {
     }
 
     public int getIconId(){
-        return Forecast.getIconId(mIcon);
+        return Forecast.getIconId(mIcon, mTime, mSunsetTime);
     }
 
     public void setIcon(String icon) {
@@ -64,7 +66,7 @@ public class Hour implements Parcelable {
     }
 
     public String getHour(){
-        SimpleDateFormat formatter = new SimpleDateFormat("h a");
+        SimpleDateFormat formatter = new SimpleDateFormat("hh a");
         Date date = new Date(mTime * 1000);
 
         return formatter.format(date);
@@ -103,4 +105,21 @@ public class Hour implements Parcelable {
             return new Hour[size];
         }
     };
+
+    public long getSunriseTime() {
+        return mSunriseTime;
+    }
+
+    public void setSunriseTime(long sunriseTime) {
+        mSunriseTime = sunriseTime;
+    }
+
+    public long getSunsetTime() {
+        return mSunsetTime;
+    }
+
+    public void setSunsetTime(long sunsetTime) {
+
+        mSunsetTime = sunsetTime;
+    }
 }

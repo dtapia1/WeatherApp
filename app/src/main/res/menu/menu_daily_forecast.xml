@@ -4,4 +4,8 @@
     tools:context="com.com.clearskies.ui.DailyForecastActivity">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item
+        android:title="Refresh"
+        android:id="@+id/refreshDataDailyFragment"
+        app:showAsAction="never"/>
 </menu>

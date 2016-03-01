@@ -1,22 +1,31 @@
 package com.dtapia.clearskies.location;
 
-/**
- * Created by Daniel on 8/1/2015.
- */
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.dtapia.clearskies.ui.MainActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,13 +34,15 @@ import java.util.Locale;
 /**
  * Created by danieltapia on 08/01/15.
  */
-public class LocationProvider implements
+public class LocationProvider extends Activity implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
 
-    public abstract interface LocationCallback {
-        public void handleNewLocation(Location location);
+    private static final int REQUEST_CHECK_SETTINGS = 0;
+
+    public interface LocationCallback {
+        void handleNewLocation(Location location);
     }
 
     public static final String TAG = LocationProvider.class.getSimpleName();
@@ -46,24 +57,21 @@ public class LocationProvider implements
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
-    private double latitude, longitude;
 
     public LocationProvider(Context context, LocationCallback callback) {
+
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
-
         mLocationCallback = callback;
-
+        mContext = context;
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
                 .setInterval(1800 * 1000)        // 1800 seconds, in milliseconds (30mins)
                 .setFastestInterval(60 * 1000); // 60 second, in milliseconds
-
-        mContext = context;
     }
 
     public void connect() {
@@ -79,25 +87,24 @@ public class LocationProvider implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        Log.i(TAG, "Location services connected.");
 
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         if (location == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
-        }
-        else {
+        } else {
             mLocationCallback.handleNewLocation(location);
         }
+        Log.d(TAG, "Location services connected");
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.d(TAG, "Location services suspended");
     }
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+
         /*
          * Google Play services can resolve some errors it detects.
          * If the error has a resolution, try sending an Intent to
@@ -106,7 +113,7 @@ public class LocationProvider implements
          */
         if (connectionResult.hasResolution() && mContext instanceof Activity) {
             try {
-                Activity activity = (Activity)mContext;
+                Activity activity = (Activity) mContext;
                 // Start an Activity that tries to resolve the error
                 connectionResult.startResolutionForResult(activity, CONNECTION_FAILURE_RESOLUTION_REQUEST);
             /*
@@ -122,7 +129,7 @@ public class LocationProvider implements
              * If no resolution is available, display a dialog to the
              * user with the error.
              */
-            Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
+            Log.d(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
         }
     }
 
@@ -131,7 +138,7 @@ public class LocationProvider implements
         mLocationCallback.handleNewLocation(location);
     }
 
-    public static String getStringLocation(Context context, double latitude,  double longitude) throws IOException {
+    public static String getStringLocation(Context context, double latitude, double longitude) throws IOException {
         Geocoder gcd = new Geocoder(context, Locale.getDefault());
 
         List<Address> addresses = gcd.getFromLocation(latitude, longitude, 1);

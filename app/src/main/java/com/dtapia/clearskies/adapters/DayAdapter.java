@@ -2,18 +2,15 @@ package com.dtapia.clearskies.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dtapia.clearskies.R;
 import com.dtapia.clearskies.weather.Day;
-import com.dtapia.clearskies.weather.Hour;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -56,12 +53,8 @@ public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
     public class DayViewHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener {
 
-        // public TextView mTimeLabel;
-        // public TextView mSummaryLabel;
-        // public TextView mTemperatureLabel;
-        // public ImageView mIconImageView;
         @Bind(R.id.dayNameLabel) TextView mDayNameLabel;
-        //@Bind(R.id.dateLabel) TextView mDateLabel;
+        @Bind(R.id.dateLabel) TextView mDateLabel;
         @Bind(R.id.highTemperatureLabel) TextView mHighTemperatureLabel;
         @Bind(R.id.lowTemperatureLabel) TextView mLowTemperatureLabel;
         @Bind(R.id.iconImageView) ImageView mIconImageView;
@@ -75,13 +68,14 @@ public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
         public void bindDay(Day day, int i) {
 
             String dayString = day.getDayOfTheWeek();
-            //String dayString = day.getDayOfTheWeek().substring(0,3);
+            String monthString = day.getMonth().substring(0,3); //extract first 3 letters of month name
             if (i == 0) {
                 mDayNameLabel.setText("Today");
 
             } else {
                 mDayNameLabel.setText(dayString);
             }
+            mDateLabel.setText(monthString + day.getDate());
             mHighTemperatureLabel.setText(day.getTemperatureMax() + "");
             mLowTemperatureLabel.setText(day.getTemperatureMin() + "");
             mIconImageView.setImageResource(day.getIconId());

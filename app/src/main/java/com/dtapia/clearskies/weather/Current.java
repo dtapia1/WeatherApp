@@ -11,16 +11,12 @@ public class Current {
     private String mIcon;
     private long mTime;
     private double mTemperature;
+    private double mTemperatureMax;
     private double mTempertureMin;
-
-    public int getTempertureMin() {
-        return (int) Math.round(mTempertureMin);
-    }
-
-    public void setTempertureMin(double tempertureMin) {
-        mTempertureMin = tempertureMin;
-    }
-
+    private double mApparentTemperature;
+    private String mAlertTitle;
+    private long mSunriseTime;
+    private long mSunsetTime;
     private long mDate;
     private double mHumidity;
     private double mPrecipChance;
@@ -56,18 +52,18 @@ public class Current {
 
     public int getIconId()
     {
-        return Forecast.getIconId(mIcon);
+        return Forecast.getIconId(mIcon, mTime, mSunsetTime);
     }
 
     public long getTime() {
         return mTime;
     }
 
-    public String getFormattedTime()
+    public String getFormattedTime(long time)
     {
         SimpleDateFormat formatter = new SimpleDateFormat("h:mm a");
         formatter.setTimeZone(TimeZone.getTimeZone(getTimeZone()));
-        Date dateTime = new Date(getTime() * 1000);
+        Date dateTime = new Date(time * 1000);
         String timeString = formatter.format(dateTime);
 
         return timeString;
@@ -83,6 +79,15 @@ public class Current {
 
     public void setTemperature(double temperature) {
         mTemperature = temperature;
+    }
+
+
+    public int getTempertureMin() {
+        return (int) Math.round(mTempertureMin);
+    }
+
+    public void setTempertureMin(double tempertureMin) {
+        mTempertureMin = tempertureMin;
     }
 
     public int getHumidity() {
@@ -119,4 +124,48 @@ public class Current {
     public void setSummary(String summary) {
         mSummary = summary;
     }
+
+
+    public String getAlertTitle() {
+        return mAlertTitle;
+    }
+
+    public void setAlertTitle(String alertTitle) {
+        mAlertTitle = alertTitle;
+    }
+
+    public void setApparentTemperature(double apparentTemperature) {
+        mApparentTemperature = apparentTemperature;
+    }
+
+    public int getApparentTemperature() {
+        return (int)Math.round(mApparentTemperature);
+    }
+
+    public void setTemperatureMax(double temperatureMax) {
+        mTemperatureMax = temperatureMax;
+    }
+
+    public int getTemperatureMax() {
+        return (int)Math.round(mTemperatureMax);
+    }
+
+    public void setSunriseTime(long sunriseTime) {
+        mSunriseTime = sunriseTime;
+    }
+
+    public long getSunriseTime() {
+        return mSunriseTime;
+    }
+
+    public void setSunsetTime(long sunsetTime) {
+
+        mSunsetTime = sunsetTime;
+    }
+
+    public long getSunsetTime() {
+        return mSunsetTime;
+    }
+
+
 }

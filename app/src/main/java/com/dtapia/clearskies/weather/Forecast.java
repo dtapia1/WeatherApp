@@ -35,40 +35,42 @@ public class Forecast {
         mDailyForecast = dailyForecast;
     }
 
-    public static int getIconId(String iconString){
-        int iconId = R.drawable.clear_day;
+    public static int getIconId(String iconString, Long currentTime, Long sunsetTime){
+        int iconId = R.drawable.ic_weather_clear;
 
         if (iconString.equals("clear-day")) {
-            iconId = R.drawable.clear_day;
+            iconId = R.drawable.ic_weather_clear;
         }
         else if (iconString.equals("clear-night")) {
-            iconId = R.drawable.clear_night;
+            iconId = R.drawable.ic_weather_clear_night;
+        }
+        else if (iconString.equals("rain") && currentTime >= sunsetTime) {
+            iconId = R.drawable.ic_weather_rain_night;
         }
         else if (iconString.equals("rain")) {
-            iconId = R.drawable.rain;
+            iconId = R.drawable.ic_weather_rain_day;
         }
         else if (iconString.equals("snow")) {
-            iconId = R.drawable.snow;
+            iconId = R.drawable.ic_weather_snow;
         }
         else if (iconString.equals("sleet")) {
-            iconId = R.drawable.sleet;
+            iconId = R.drawable.ic_weather_snow_rain;
         }
         else if (iconString.equals("wind")) {
-            iconId = R.drawable.wind;
+            iconId = R.drawable.ic_weather_wind;
         }
         else if (iconString.equals("fog")) {
-            iconId = R.drawable.fog;
+            iconId = R.drawable.ic_weather_fog;
         }
         else if (iconString.equals("cloudy")) {
-            iconId = R.drawable.cloudy;
+            iconId = R.drawable.ic_weather_clouds;
         }
         else if (iconString.equals("partly-cloudy-day")) {
-            iconId = R.drawable.partly_cloudy;
+            iconId = R.drawable.ic_weather_few_clouds;
         }
         else if (iconString.equals("partly-cloudy-night")) {
-            iconId = R.drawable.cloudy_night;
+            iconId = R.drawable.ic_weather_clouds_night;
         }
-
         return iconId;
     }
 }
