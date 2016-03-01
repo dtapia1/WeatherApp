@@ -10,4 +10,10 @@
     <string name="title_activity_daily_forecast">DailyForecastActivity</string>
     <string name="no_daily_forecast_data">There is no data to display.</string>
     <string name="title_activity_hourly_forecast">HourlyForecastActivity</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_daily_fragment">DailyFragment</string>
+    <string name="title_activity_main_fragment">MainFragment</string>
+    <string name="title_activity_hourly_forecast_fragment">HourlyForecastFragment</string>
 </resources>

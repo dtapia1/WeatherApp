@@ -131,12 +131,13 @@ public class LocationProvider implements
         mLocationCallback.handleNewLocation(location);
     }
 
-    public static String getStringLocation(Context context, double latitude, double longitude) throws IOException {
+    public static String getStringLocation(Context context, double latitude,  double longitude) throws IOException {
         Geocoder gcd = new Geocoder(context, Locale.getDefault());
 
         List<Address> addresses = gcd.getFromLocation(latitude, longitude, 1);
 
-        String location = addresses.get(0).getLocality() + ", " + addresses.get(0).getAdminArea();
+        //String location = addresses.get(0).getLocality() + ", " + addresses.get(0).getAdminArea();
+        String location = addresses.get(0).getLocality();
 
         return location;
     }

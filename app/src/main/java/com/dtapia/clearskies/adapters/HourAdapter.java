@@ -47,7 +47,7 @@ public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder
     }
 
     public class HourViewHolder extends RecyclerView.ViewHolder
-    implements View.OnClickListener{
+            implements View.OnClickListener{
 
        // public TextView mTimeLabel;
        // public TextView mSummaryLabel;
@@ -78,8 +78,8 @@ public class HourAdapter extends RecyclerView.Adapter<HourAdapter.HourViewHolder
             String time = mTimeLabel.getText().toString();
             String temperature = mTemperatureLabel.getText().toString();
             String summary = mSummaryLabel.getText().toString();
-            String message = String.format("At %s it will be %s. %s",
-                    time, temperature, summary);
+            String message = String.format("%s: %s and %s.",
+                    time, summary, temperature);
             Toast.makeText(mContext, message, Toast.LENGTH_LONG).show();
         }
     }

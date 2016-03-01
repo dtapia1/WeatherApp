@@ -1,5 +1,6 @@
 package com.dtapia.clearskies.ui;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
@@ -17,7 +18,7 @@ import com.dtapia.clearskies.R;
 
 import com.dtapia.clearskies.weather.Hour;
 
-public class HourlyForecastActivity extends ActionBarActivity {
+public class HourlyForecastActivity extends Activity {
 
     private Hour[] mHours;
     @Bind(R.id.recyclerView)RecyclerView mRecyclerView;
@@ -29,7 +30,7 @@ public class HourlyForecastActivity extends ActionBarActivity {
         ButterKnife.bind(this);
 
         Intent intent = getIntent();
-        Parcelable[] parcelables = intent.getParcelableArrayExtra(MainActivity.HOURLY_FORECAST);
+        Parcelable[] parcelables = intent.getParcelableArrayExtra(CurrentFragment.HOURLY_FORECAST);
         mHours = Arrays.copyOf(parcelables, parcelables.length, Hour[].class);
 
         HourAdapter adapter = new HourAdapter(this, mHours);

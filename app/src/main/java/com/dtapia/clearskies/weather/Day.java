@@ -13,8 +13,10 @@ import java.util.TimeZone;
 public class Day implements Parcelable{
 
     private long mTime;
+    private long mDate;
     private String mSummary;
     private double mTemperatureMax;
+    private double mTemperatureMin;
     private String mIcon;
     private String mTimezone;
 
@@ -42,6 +44,15 @@ public class Day implements Parcelable{
         mTemperatureMax = temperatureMax;
     }
 
+    public int getTemperatureMin() {
+        return (int)Math.round(mTemperatureMin);
+    }
+
+    public void setTemperatureMin(double temperatureMin) {
+        mTemperatureMin = temperatureMin;
+    }
+
+
     public String getIcon() {
         return mIcon;
     }
@@ -68,6 +79,17 @@ public class Day implements Parcelable{
         return formatter.format(dateTime);
     }
 
+    public void setDate(long date) {
+        mDate = date;
+    }
+
+    public String getDate(){
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd");
+        formatter.setTimeZone(TimeZone.getTimeZone(mTimezone));
+        Date dateTime = new Date(mTime * 1000);
+        return formatter.format(dateTime);
+    }
+
     @Override
     public int describeContents() {
         return 0; //don't need
@@ -76,16 +98,20 @@ public class Day implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(mTime);
+        dest.writeLong(mDate);
         dest.writeString(mSummary);
         dest.writeDouble(mTemperatureMax);
+        dest.writeDouble(mTemperatureMin);
         dest.writeString(mIcon);
         dest.writeString(mTimezone);
     }
 
     private Day(Parcel n){
         mTime = n.readLong();
+        mDate = n.readLong();
         mSummary = n.readString();
         mTemperatureMax = n.readDouble();
+        mTemperatureMin = n.readDouble();
         mIcon = n.readString();
         mTimezone = n.readString();
     }

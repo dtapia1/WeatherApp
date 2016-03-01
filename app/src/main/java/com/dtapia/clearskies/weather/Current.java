@@ -13,16 +13,18 @@ public class Current {
     private double mTemperature;
     private double mTempertureMin;
 
-    public double getTempertureMin() {
-        return mTempertureMin;
+    public int getTempertureMin() {
+        return (int) Math.round(mTempertureMin);
     }
 
     public void setTempertureMin(double tempertureMin) {
         mTempertureMin = tempertureMin;
     }
 
+    private long mDate;
     private double mHumidity;
     private double mPrecipChance;
+    private double mWindSpeed;
     private String mSummary;
     private String mTimeZone;
 
@@ -32,6 +34,16 @@ public class Current {
 
     public void setTimeZone(String timeZone) {
         mTimeZone = timeZone;
+    }
+    public void setDate(long date) {
+        mDate = date;
+    }
+
+    public String getDate(){
+        SimpleDateFormat formatter = new SimpleDateFormat("EEE, MMM dd");
+        formatter.setTimeZone(TimeZone.getTimeZone(mTimeZone));
+        Date dateTime = new Date(mTime * 1000);
+        return formatter.format(dateTime);
     }
 
     public String getIcon() {
@@ -73,12 +85,22 @@ public class Current {
         mTemperature = temperature;
     }
 
-    public double getHumidity() {
-        return mHumidity;
+    public int getHumidity() {
+        double humidityPercentage = mHumidity * 100;
+        return (int)Math.round(humidityPercentage);
     }
 
     public void setHumidity(double humidity) {
         mHumidity = humidity;
+    }
+
+    public int getWindSpeed() {
+        double windSpeed = mWindSpeed;
+        return (int)Math.round(windSpeed);
+    }
+
+    public void setWindSpeed(double windSpeed) {
+        mWindSpeed = windSpeed;
     }
 
     public int getPrecipChance() {

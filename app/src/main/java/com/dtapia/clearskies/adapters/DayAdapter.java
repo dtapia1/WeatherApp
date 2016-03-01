@@ -1,80 +1,99 @@
 package com.dtapia.clearskies.adapters;
 
 import android.content.Context;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.dtapia.clearskies.R;
 import com.dtapia.clearskies.weather.Day;
+import com.dtapia.clearskies.weather.Hour;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Created by Daniel on 7/28/2015.
  */
-public class DayAdapter extends BaseAdapter{
 
-    private Context mContext;
+public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
+
     private Day[] mDays;
+    private Context mContext;
+    private String mSummary;
 
-    public DayAdapter(Context context, Day[] days){
+    public DayAdapter(Context context, Day[] days) {
         mContext = context;
         mDays = days;
     }
 
     @Override
-    public int getCount() {
+    public DayViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+        View view = LayoutInflater.from(viewGroup.getContext())
+                .inflate(R.layout.daily_list_item, viewGroup, false);
+        DayViewHolder viewHolder = new DayViewHolder(view);
+
+        return viewHolder;
+    }
+
+    @Override
+    public void onBindViewHolder(DayViewHolder dayViewHolder, int i) {
+
+        dayViewHolder.bindDay(mDays[i], i);
+    }
+
+    @Override
+    public int getItemCount() {
         return mDays.length;
     }
 
-    @Override
-    public Object getItem(int position) {
-        return mDays[position];
-    }
+    public class DayViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
 
-    @Override
-    public long getItemId(int position) {
-        return 0; // won't use this. Tag items for easy reference
-    }
+        // public TextView mTimeLabel;
+        // public TextView mSummaryLabel;
+        // public TextView mTemperatureLabel;
+        // public ImageView mIconImageView;
+        @Bind(R.id.dayNameLabel) TextView mDayNameLabel;
+        //@Bind(R.id.dateLabel) TextView mDateLabel;
+        @Bind(R.id.highTemperatureLabel) TextView mHighTemperatureLabel;
+        @Bind(R.id.lowTemperatureLabel) TextView mLowTemperatureLabel;
+        @Bind(R.id.iconImageView) ImageView mIconImageView;
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-
-        if(convertView == null){
-            // brand new
-            convertView = LayoutInflater.from(mContext)
-                    .inflate(R.layout.daily_list_item, null);
-            holder = new ViewHolder();
-            holder.iconImageView = (ImageView)convertView.findViewById(R.id.iconImageView);
-            holder.temperatureLabel = (TextView)convertView.findViewById(R.id.temperatureLabel);
-            holder.dayLabel = (TextView)convertView.findViewById(R.id.dayNameLabel);
-
-            convertView.setTag(holder);
-        }
-        else{
-            holder = (ViewHolder)convertView.getTag();
+        public DayViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
         }
 
-        Day day = mDays[position];
+        public void bindDay(Day day, int i) {
 
-        holder.iconImageView.setImageResource(day.getIconId());
-        holder.temperatureLabel.setText(day.getTemperatureMax() + "");
+            String dayString = day.getDayOfTheWeek();
+            //String dayString = day.getDayOfTheWeek().substring(0,3);
+            if (i == 0) {
+                mDayNameLabel.setText("Today");
 
-        if(position == 0){
-            holder.dayLabel.setText("Today");
+            } else {
+                mDayNameLabel.setText(dayString);
+            }
+            mHighTemperatureLabel.setText(day.getTemperatureMax() + "");
+            mLowTemperatureLabel.setText(day.getTemperatureMin() + "");
+            mIconImageView.setImageResource(day.getIconId());
+            mSummary = day.getSummary();
         }
-        else{
-            holder.dayLabel.setText(day.getDayOfTheWeek());
-        }
-        return convertView;
-    }
 
-    private static class ViewHolder {
-        ImageView iconImageView; //public by default
-        TextView temperatureLabel;
-        TextView dayLabel;
+        @Override
+        public void onClick(View v) {
+            // Retrieve accurate position of current view
+            String summary = String.format("%s", mDays[getAdapterPosition()].getSummary().toString());
+
+            Toast.makeText(mContext, summary, Toast.LENGTH_LONG).show();
+        }
     }
 }
