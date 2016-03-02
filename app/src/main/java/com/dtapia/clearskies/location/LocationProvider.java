@@ -40,23 +40,26 @@ public class LocationProvider extends Activity implements
         LocationListener {
 
     private static final int REQUEST_CHECK_SETTINGS = 0;
-
-    public interface LocationCallback {
-        void handleNewLocation(Location location);
-    }
-
     public static final String TAG = LocationProvider.class.getSimpleName();
-
-    /*
-     * Define a request code to send to Google Play services
-     * This code is returned in Activity.onActivityResult
-     */
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     private LocationCallback mLocationCallback;
     private Context mContext;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    private boolean isConnected = false;
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setIsConnected(boolean isConnected) {
+        this.isConnected = isConnected;
+    }
+
+    public interface LocationCallback {
+        void handleNewLocation(Location location);
+    }
 
     public LocationProvider(Context context, LocationCallback callback) {
 
@@ -83,6 +86,7 @@ public class LocationProvider extends Activity implements
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
+        setIsConnected(false);
     }
 
     @Override
@@ -94,6 +98,7 @@ public class LocationProvider extends Activity implements
         } else {
             mLocationCallback.handleNewLocation(location);
         }
+        setIsConnected(true);
         Log.d(TAG, "Location services connected");
     }
 

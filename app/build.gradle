@@ -8,8 +8,8 @@ android {
         applicationId "com.dtapia.clearskies"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 7
-        versionName "3.02"
+        versionCode 8
+        versionName "3.03"
     }
     buildTypes {
         release {
