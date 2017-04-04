@@ -1,80 +1,125 @@
 package com.dtapia.clearskies.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.dtapia.clearskies.R;
-import com.dtapia.clearskies.weather.Day;
+import com.dtapia.clearskies.data.WeatherContract;
+import com.dtapia.clearskies.ui.DailyForecastFragment;
+import com.dtapia.clearskies.ui.Utility;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
+import static com.dtapia.clearskies.R.layout.list_item_daily;
 
 /**
  * Created by Daniel on 7/28/2015.
  */
-public class DayAdapter extends BaseAdapter{
 
-    private Context mContext;
-    private Day[] mDays;
+public class DayAdapter extends RecyclerView.Adapter <DayAdapter.DayViewHolder> {
 
-    public DayAdapter(Context context, Day[] days){
+    private static final int VIEW_TYPE_COUNT = 2;
+    private static final int VIEW_TYPE_TODAY = 0;
+    private static final int VIEW_TYPE_FUTURE_DAY = 1;
+
+    private Cursor mCursor;
+    final private Context mContext;
+    final private DayAdapterOnClickHandler mClickHandler;
+    final private View mEmptyView;
+
+    // Flag to determine if we want to use a separate view for "today".
+    private boolean mUseTodayLayout = true;
+
+    public class DayViewHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener{
+
+        @Bind(R.id.dayNameLabel) public TextView dayNameView;
+        @Bind(R.id.dateLabel) public TextView dateView;
+        @Bind(R.id.iconImageView) public ImageView iconView;
+        @Bind(R.id.highTemperatureLabel) public TextView highTempView;
+        @Bind(R.id.lowTemperatureLabel) public TextView lowTempView;
+
+        public DayViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            int adapterPosition = getAdapterPosition();
+            mCursor.moveToPosition(adapterPosition);
+            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_CURRENT_TIME);
+            mClickHandler.onClick(mCursor.getLong(dateColumnIndex), this);
+        }
+    }
+
+    public static interface DayAdapterOnClickHandler {
+        void onClick(Long date, DayViewHolder vh);
+    }
+
+    public DayAdapter(Context context, DayAdapterOnClickHandler handler, View emptyView) {
         mContext = context;
-        mDays = days;
+        mClickHandler = handler;
+        mEmptyView = emptyView;
     }
 
     @Override
-    public int getCount() {
-        return mDays.length;
+    public DayViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(list_item_daily, viewGroup, false);
+        view.setFocusable(true);
+
+        return new DayViewHolder(view);
     }
 
     @Override
-    public Object getItem(int position) {
-        return mDays[position];
+    public void onBindViewHolder(DayViewHolder viewHolder, int position) {
+        mCursor.moveToPosition(position);
+
+        //boolean isMetric = Utility.isMetric(context);
+        Long dateInMillis = mCursor.getLong(DailyForecastFragment.COL_WEATHER_DATE);
+
+        String dayOfTheWeek = Utility.getDayName(mContext, dateInMillis);
+        viewHolder.dayNameView.setText(dayOfTheWeek);
+
+        String monthDay = Utility.getFormattedMonthDay(mContext, dateInMillis);
+        viewHolder.dateView.setText(monthDay);
+
+        String iconDescription = mCursor.getString(DailyForecastFragment.COL_WEATHER_ICON_ID);
+        viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(iconDescription));
+
+        double dailyHighTemp = mCursor.getDouble(DailyForecastFragment.COL_WEATHER_HIGH_TEMP);
+        viewHolder.highTempView.setText(Utility.formatTemperature(mContext, dailyHighTemp));
+
+        double dailyLowTemp = mCursor.getDouble(DailyForecastFragment.COL_WEATHER_LOW_TEMP);
+        viewHolder.lowTempView.setText(Utility.formatTemperature(mContext, dailyLowTemp));
+
+        //For accessibility, add a content description to the icon field
+        viewHolder.iconView.setContentDescription(iconDescription);
     }
 
     @Override
-    public long getItemId(int position) {
-        return 0; // won't use this. Tag items for easy reference
+    public int getItemCount() {
+        if ( null == mCursor ) return 0;
+        return mCursor.getCount();
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-
-        if(convertView == null){
-            // brand new
-            convertView = LayoutInflater.from(mContext)
-                    .inflate(R.layout.daily_list_item, null);
-            holder = new ViewHolder();
-            holder.iconImageView = (ImageView)convertView.findViewById(R.id.iconImageView);
-            holder.temperatureLabel = (TextView)convertView.findViewById(R.id.temperatureLabel);
-            holder.dayLabel = (TextView)convertView.findViewById(R.id.dayNameLabel);
-
-            convertView.setTag(holder);
-        }
-        else{
-            holder = (ViewHolder)convertView.getTag();
-        }
-
-        Day day = mDays[position];
-
-        holder.iconImageView.setImageResource(day.getIconId());
-        holder.temperatureLabel.setText(day.getTemperatureMax() + "");
-
-        if(position == 0){
-            holder.dayLabel.setText("Today");
-        }
-        else{
-            holder.dayLabel.setText(day.getDayOfTheWeek());
-        }
-        return convertView;
+    public void swapCursor(Cursor newCursor) {
+        mCursor = newCursor;
+        notifyDataSetChanged();
+        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
-    private static class ViewHolder {
-        ImageView iconImageView; //public by default
-        TextView temperatureLabel;
-        TextView dayLabel;
+    public Cursor getCursor() {
+        return mCursor;
     }
+
 }
+

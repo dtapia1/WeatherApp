@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@color/primary_color">
+
+    <TextView
+        android:id="@+id/timeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:layout_centerVertical="true"
+        android:fontFamily="sans-serif"
+        android:paddingLeft="@dimen/activity_left_margin"
+        android:textColor="#ffffffff"
+        android:textSize="16sp"
+        tools:text="12 PM"/>
+
+    <ImageView
+        android:id="@+id/iconImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:paddingLeft="72dp"
+        tools:src="@drawable/ic_weather_clear"/>
+
+    <TextView
+        android:id="@+id/summaryLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/iconImageView"
+        android:layout_toRightOf="@+id/iconImageView"
+        android:fontFamily="sans-serif"
+        android:paddingLeft="16dp"
+        android:textColor="#ffffffff"
+        android:textSize="16sp"
+        tools:text="Partly Cloudy"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/summaryLabel"
+        android:gravity="right"
+        android:paddingRight="@dimen/activity_right_margin">
+
+        <TextView
+            android:id="@+id/temperatureLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:fontFamily="sans-serif"
+            android:textColor="#ffffffff"
+            android:textSize="16sp"
+            tools:text="100"/>
+
+    </RelativeLayout>
+
+  <!--  <View
+        android:id="@+id/dividerLine"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_above="@+id/linearLayoutDetails"
+        android:layout_marginLeft="16dp"
+        android:background="?android:attr/listDivider"
+        android:paddingBottom="16dp"
+        android:paddingTop="@dimen/activity_left_margin"/>-->
+</RelativeLayout>
