@@ -47,6 +47,8 @@ public class HourlyForecastFragment extends Fragment implements LoaderManager.Lo
     private ListView mHourlyListView;
     private RecyclerView mRecyclerView;
     private int mPosition = RecyclerView.NO_POSITION;
+    public static final String DUALPANE = "DUALPANE";
+    private boolean mDualPane;
 
     private String mLocation;
     private String mUnits;
@@ -76,17 +78,6 @@ public class HourlyForecastFragment extends Fragment implements LoaderManager.Lo
     public static final int COL_WEATHER_DESC = 3;
     public static final int COL_WEATHER_TEMP = 4;
 
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callback {
-        /**
-         * DetailFragmentCallback for when an item has been selected.
-         */
-        public void onItemSelected(Uri dateUri);
-    }
 
     public HourlyForecastFragment() {
     }
@@ -94,7 +85,6 @@ public class HourlyForecastFragment extends Fragment implements LoaderManager.Lo
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Add this line in order for this fragment to handle menu events.
         setHasOptionsMenu(true);
         mLocation = Utility.getPreferredLocation(getActivity());
         mUnits = Utility.getPreferredUnits(getActivity());
@@ -136,10 +126,10 @@ public class HourlyForecastFragment extends Fragment implements LoaderManager.Lo
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
+        /*if (id == R.id.action_refresh) {
             updateWeather();
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
     }
 
@@ -147,18 +137,31 @@ public class HourlyForecastFragment extends Fragment implements LoaderManager.Lo
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.hourly_forecast_fragment, container, false);
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mDualPane = arguments.getBoolean(HourlyForecastFragment.DUALPANE);
+        }
 
+        View rootView = inflater.inflate(R.layout.fragment_hourly_forecast, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_hourly_forecast);
 
-        //set layout manager
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        View emptyView = rootView.findViewById(R.id.recyclerview_forecast_empty);
+        //if(mDualPane){
+            //set layout manager
+            //mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        //}else{
+            //mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        //}
 
+        if(getResources().getBoolean(R.bool.landscape_mode)){
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        }else{
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        }
+
+        View emptyView = rootView.findViewById(R.id.recyclerview_forecast_empty);
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
-
 
         // The HourAdapter will take data from a source and
         // use it to populate the RecyclerView it's attached to.

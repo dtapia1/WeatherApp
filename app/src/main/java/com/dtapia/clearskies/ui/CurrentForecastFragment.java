@@ -39,17 +39,19 @@ import com.dtapia.clearskies.sync.ForecastSyncAdapter;
 
 public class CurrentForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     public static final String LOG_TAG = CurrentForecastFragment.class.getSimpleName();
-    public static final String ATTRIBUTION_URL = "https://darksky.net/poweredby/";
+    public static final String TWO_PANE = "TWO_PANE";
     private int mPosition = ListView.INVALID_POSITION;
     private String mLocation;
     private String mUnits;
+    private boolean mTwoPane;
+    private Uri weatherForLocationUri;
 
     private static final String SELECTED_KEY = "selected_position";
 
     private static final int FORECAST_LOADER = 0;
     // For the forecast view we're showing only a small subset of the stored data.
     // Specify the columns we need.
-    private static final String[] FORECAST_COLUMNS = {
+    public static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
             // (both have an _id column)
@@ -72,7 +74,6 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
             WeatherContract.WeatherEntry.COLUMN_MAX_TEMP,           //13
             WeatherContract.WeatherEntry.COLUMN_MIN_TEMP            //14
     };
-
 
 
     // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
@@ -100,26 +101,24 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
     private TextView mHighLowTempView;
     private TextView mSummaryView;
     private TextView mCurrentTemperatureView;
-    private TextView mApparrentTemperatureView;
+    private TextView mLowTemperatureView;
+    //private TextView mApparrentTemperatureView;
     private TextView mPrecipitationView;
     private TextView mHumidityView;
     private TextView mWindView;
     private TextView mPressureView;
-    private TextView mSunriseView;
-    private TextView mSunsetView;
-    private ImageView mPoweredByView;
 
     /**
      * A callback interface that all activities containing this fragment must
      * implement. This mechanism allows activities to be notified of item
      * selections.
      */
-    public interface Callback {
-        /**
+    /*public interface Callback {
+        *//**
          * MainActivityCallback for when an item has been selected.
-         */
-        public void displayAttribute(String url);
-    }
+         *//*
+        public void onClickCurrentLayout(Uri uri);
+    }*/
 
     public CurrentForecastFragment() {
     }
@@ -159,45 +158,46 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
+        /*if (id == R.id.action_refresh) {
             updateWeather();
             return true;
-        }
-        /*if (id == R.id.action_map) {
-            openPreferredLocationInMap();
-            return true;
         }*/
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.fragment_current_forecast, container, false);
 
-        View rootView = inflater.inflate(R.layout.current_forecast_fragment, container, false);
-
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mTwoPane = arguments.getBoolean(CurrentForecastFragment.TWO_PANE);
+        }
+        /*if(!mTwoPane){
+            LinearLayout layout = (LinearLayout) rootView.findViewById(R.id.current_forecast_fragment_layout);
+            layout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ((Callback) getActivity()).onClickCurrentLayout(weatherForLocationUri);
+                }
+            });
+        }*/
         mIconView = (ImageView) rootView.findViewById(R.id.iconImageView);
         /*mLocationView = (TextView) rootView.findViewById(R.id.locationLabel);*/
         mDateView = (TextView) rootView.findViewById(R.id.dateLabel);
-        mFriendlyDateView = (TextView) rootView.findViewById(R.id.summaryLabel);
-        mHighLowTempView = (TextView) rootView.findViewById(R.id.highLowTemperature);
-        mSummaryView = (TextView) rootView.findViewById(R.id.summaryLabel);
+        //mFriendlyDateView = (TextView) rootView.findViewById(R.id.dateLabel);
+        //mHighLowTempView = (TextView) rootView.findViewById(R.id.highLowTemperature);
+        mSummaryView = (TextView) rootView.findViewById(R.id.shortSummaryLabel);
         mCurrentTemperatureView = (TextView) rootView.findViewById(R.id.temperatureLabel);
-        mApparrentTemperatureView = (TextView) rootView.findViewById(R.id.apparentTemperatureLabel);
-        mPrecipitationView = (TextView) rootView.findViewById(R.id.precipValue);
-        mHumidityView = (TextView) rootView.findViewById(R.id.humidityValue);
-        mPressureView = (TextView) rootView.findViewById(R.id.pressureValue);
-        mWindView = (TextView) rootView.findViewById(R.id.windValue);
-        mSunriseView = (TextView) rootView.findViewById(R.id.sunriseTimeValue);
-        mSunsetView = (TextView) rootView.findViewById(R.id.sunsetTimeValue);
-        mPoweredByView = (ImageView) rootView.findViewById(R.id.forecastAttribution);
-        mPoweredByView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((Callback) getActivity()).displayAttribute(ATTRIBUTION_URL);
-            }
-        });
+        mLowTemperatureView = (TextView) rootView.findViewById(R.id.lowTemperatureLabel);
+        //mApparrentTemperatureView = (TextView) rootView.findViewById(R.id.apparentTemperatureLabel);
+        if (mTwoPane) {
+            mPrecipitationView = (TextView) rootView.findViewById(R.id.precipValue);
+            mHumidityView = (TextView) rootView.findViewById(R.id.humidityValue);
+            mPressureView = (TextView) rootView.findViewById(R.id.pressureValue);
+            mWindView = (TextView) rootView.findViewById(R.id.windValue);
+        }
 
         return rootView;
     }
@@ -209,7 +209,7 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
     }
 
     // since we read the location when we create the loader, all we need to do is restart things
-    void onLocationChanged( ) {
+    void onLocationChanged() {
         updateWeather();
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
     }
@@ -221,12 +221,6 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        // When tablets rotate, the currently selected list item needs to be saved.
-        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
-        // so check for that before storing.
-        /*if (mPosition != ListView.INVALID_POSITION) {
-            outState.putInt(SELECTED_KEY, mPosition);
-        }*/
         super.onSaveInstanceState(outState);
     }
 
@@ -235,14 +229,11 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
         // This is called when a new Loader needs to be created.  This
         // fragment only uses one loader, so we don't care about checking the id.
 
-        // To only show current and future dates, filter the query to return weather only for
-        // dates after or including today.
-
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_CURRENT_TIME + " ASC";
 
         String locationSetting = Utility.getPreferredLocation(getActivity());
-        Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithWeatherType(
+        weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithWeatherType(
                 locationSetting, ForecastSyncAdapter.CURRENTLY);
         return new CursorLoader(getActivity(),
                 weatherForLocationUri,
@@ -266,16 +257,13 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
             // Use weather art image
             mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(iconId, currentTime, sunsetTime));
 
-           /* String cityName = data.getString(COL_CITY_NAME);
-            mLocationView.setText(cityName);*/
-
             // Read date from cursor and update views for day of week and date
             long date = data.getLong(COL_WEATHER_TIME);
 
             //long date = System.currentTimeMillis();
             String friendlyDateText = Utility.getDayName(getActivity(), date);
             String dateText = Utility.getFormattedMonthDay(getActivity(), date);
-            mFriendlyDateView.setText(friendlyDateText);
+            //mFriendlyDateView.setText(friendlyDateText);
             mDateView.setText(dateText);
 
             // Read description from cursor and update view
@@ -292,36 +280,38 @@ public class CurrentForecastFragment extends Fragment implements LoaderManager.L
             String currentTemperature = Utility.formatTemperature(getActivity(), current);
             mCurrentTemperatureView.setText(currentTemperature);
 
-            double apparent = data.getDouble(COL_WEATHER_APARRENT_TEMP);
-            String apparentTemperature = Utility.formatTemperature(getActivity(), apparent);
-            mApparrentTemperatureView.setText(getActivity().getString(R.string.format_apparent_temperature, apparentTemperature));
+            //double apparent = data.getDouble(COL_WEATHER_APARRENT_TEMP);
+            //String apparentTemperature = Utility.formatTemperature(getActivity(), apparent);
+            //mApparrentTemperatureView.setText(getActivity().getString(R.string.format_apparent_temperature, apparentTemperature));
 
             double highTemperature = data.getDouble(COL_WEATHER_HIGH_TEMP);
             double lowTemperature = data.getDouble(COL_WEATHER_LOW_TEMP);
             String high = Utility.formatTemperature(getActivity(), highTemperature);
             String low = Utility.formatTemperature(getActivity(), lowTemperature);
-            mHighLowTempView.setText(getActivity().getString(R.string.format_high_low_temperature, high, low));
+            //mHighLowTempView.setText(getActivity().getString(R.string.format_high_low_temperature, high, low));
+            mLowTemperatureView.setText(low);
 
-            double precipationChance = data.getDouble(COL_WEATHER_PRECIPITATION);
-            int formattedPrecip = Utility.formatPercentage(precipationChance);
-            mPrecipitationView.setText(getActivity().getString(R.string.format_humidity, formattedPrecip));
+            if (mTwoPane) {
+                double precipationChance = data.getDouble(COL_WEATHER_PRECIPITATION);
+                int formattedPrecip = Utility.formatPercentage(precipationChance);
+                mPrecipitationView.setText(getActivity().getString(R.string.format_humidity, formattedPrecip));
 
-            // Read humidity from cursor and update view
-            double humidity = data.getDouble(COL_WEATHER_HUMIDITY);
-            int formattedHumdity = Utility.formatPercentage(humidity);
-            mHumidityView.setText(getActivity().getString(R.string.format_humidity, formattedHumdity));
+                // Read humidity from cursor and update view
+                double humidity = data.getDouble(COL_WEATHER_HUMIDITY);
+                int formattedHumdity = Utility.formatPercentage(humidity);
+                mHumidityView.setText(getActivity().getString(R.string.format_humidity, formattedHumdity));
 
-            // Read wind speed and direction from cursor and update view
-            float windSpeedStr = data.getFloat(COL_WEATHER_WIND_SPEED);
-            float windDirStr = data.getFloat(COL_WEATHER_DEGREES);
-            mWindView.setText(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
+                // Read wind speed and direction from cursor and update view
+                float windSpeedStr = data.getFloat(COL_WEATHER_WIND_SPEED);
+                float windDirStr = data.getFloat(COL_WEATHER_DEGREES);
+                mWindView.setText(Utility.getFormattedWind(getActivity(), windSpeedStr, windDirStr));
 
-            // Read pressure from cursor and update view
-            float pressure = data.getFloat(COL_WEATHER_PRESSURE);
-            mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
+                // Read pressure from cursor and update view
+                float pressure = data.getFloat(COL_WEATHER_PRESSURE);
+                mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
+            }
 
-            mSunriseView.setText(Utility.getFormattedTime(sunriseTime));
-            mSunsetView.setText(Utility.getFormattedTime(sunsetTime));
+
             // We still need this for the share intent
             //mForecast = String.format("%s - %s - %s/%s", dateText, description, high, low);
 

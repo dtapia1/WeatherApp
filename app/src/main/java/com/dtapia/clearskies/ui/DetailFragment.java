@@ -15,7 +15,6 @@
  */
 package com.dtapia.clearskies.ui;
 
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,7 +22,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,12 +43,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final String LOG_TAG = DetailFragment.class.getSimpleName();
     static final String DETAIL_URI = "URI";
+    static final String DETAIL_SUMMARY = "DETAIL_SUMMARY";
+    static final String DISPLAY_CURRENT = "DISPLAY_CURRENT";
+    public static final String ATTRIBUTION_URL = "https://darksky.net/poweredby/";
 
-    private static final String FORECAST_SHARE_HASHTAG = " #SunshineApp";
 
     private ShareActionProvider mShareActionProvider;
     private String mForecast;
     private Uri mUri;
+    private boolean mDetailSummary;
 
     private static final int DETAIL_LOADER = 0;
 
@@ -85,7 +89,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private ImageView mIconView;
     private TextView mDateView;
-    private TextView mSummaryView;
+    private TextView mShortSummaryView;
+    private TextView mLongSummaryView;
     private TextView mHighTempView;
     private TextView mLowTempView;
     private TextView mPrecipitationView;
@@ -94,7 +99,19 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     private TextView mPressureView;
     private TextView mSunriseView;
     private TextView mSunsetView;
+    private TextView mPoweredByView;
 
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * MainActivityCallback for when an item has been selected.
+         */
+        public void displayAttribute(String url);
+    }
 
     public DetailFragment() {
         setHasOptionsMenu(true);
@@ -107,20 +124,41 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         Bundle arguments = getArguments();
         if (arguments != null) {
             mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
+            mDetailSummary = arguments.getBoolean(DetailFragment.DETAIL_SUMMARY);
         }
 
-        View rootView = inflater.inflate(R.layout.daily_fragment_detail, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         mIconView = (ImageView) rootView.findViewById(R.id.iconImageView);
         mDateView = (TextView) rootView.findViewById(R.id.dateLabel);
-        mSummaryView = (TextView) rootView.findViewById(R.id.daily_summaryLabel);
+        mShortSummaryView = (TextView) rootView.findViewById(R.id.daily_summaryLabel);
+        if(mDetailSummary){
+            mLongSummaryView = (TextView) rootView.findViewById(R.id.longSummaryValue);
+        }
+
         mHighTempView = (TextView) rootView.findViewById(R.id.highTemperatureLabel);
         mLowTempView = (TextView) rootView.findViewById(R.id.lowTemperatureLabel);
         mPrecipitationView = (TextView) rootView.findViewById(R.id.precipValue);
         mHumidityView = (TextView) rootView.findViewById(R.id.humidityValue);
         mWindView = (TextView) rootView.findViewById(R.id.windValue);
         mPressureView = (TextView) rootView.findViewById(R.id.pressureValue);
-        mSunriseView = (TextView) rootView.findViewById(R.id.sunriseTimeValue);
-        mSunsetView = (TextView) rootView.findViewById(R.id.sunsetTimeValue);
+        //mSunriseView = (TextView) rootView.findViewById(R.id.sunriseTimeValue);
+        //mSunsetView = (TextView) rootView.findViewById(R.id.sunsetTimeValue);
+        mPoweredByView = (TextView) rootView.findViewById(R.id.forecastAttribution);
+
+        mPoweredByView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((Callback) getActivity()).displayAttribute(ATTRIBUTION_URL);
+            }
+        });
+
+        AppCompatActivity activity = (AppCompatActivity)getActivity();
+        Toolbar toolbarView = (Toolbar) rootView.findViewById(R.id.toolbar);
+        if ( null != toolbarView ) {
+            activity.setSupportActionBar(toolbarView);
+            activity.getSupportActionBar().setDisplayShowTitleEnabled(false);
+            activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         return rootView;
     }
@@ -141,13 +179,13 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         }*/
     }
 
-    private Intent createShareForecastIntent() {
+    /*private Intent createShareForecastIntent() {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, mForecast + FORECAST_SHARE_HASHTAG);
         return shareIntent;
-    }
+    }*/
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -199,8 +237,15 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             String dateText = Utility.getFormattedMonthDay(getActivity(), date);
             mDateView.setText(getActivity().getString(R.string.format_full_friendly_date, friendlyDateText, dateText));
 
-            String description = data.getString(COL_WEATHER_DESC);
-            mSummaryView.setText(description);
+            //String description = data.getString(COL_WEATHER_DESC);
+            String shortSummary = Utility.getDailySummary(iconId);
+            mShortSummaryView.setText(shortSummary);
+
+            if(mDetailSummary){
+                String longSummary = data.getString(COL_WEATHER_DESC);
+               mLongSummaryView.setText(longSummary);
+                //mLongSummaryView.setText("Light rain in the morning and afternoon.Long text test is this another line or is this too long.");
+            }
 
             double highTemperature = data.getDouble(COL_WEATHER_HIGH_TEMP);
             String high = Utility.formatTemperature(getActivity(), highTemperature);
@@ -225,8 +270,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
             float pressure = data.getFloat(COL_WEATHER_PRESSURE);
             mPressureView.setText(getActivity().getString(R.string.format_pressure, pressure));
 
-            mSunriseView.setText(Utility.getFormattedTime(sunriseTime));
-            mSunsetView.setText(Utility.getFormattedTime(sunsetTime));
+            //mSunriseView.setText(Utility.getFormattedTime(sunriseTime));
+            //mSunsetView.setText(Utility.getFormattedTime(sunsetTime));
         }
     }
 

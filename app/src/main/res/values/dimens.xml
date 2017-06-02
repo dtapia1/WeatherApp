@@ -4,4 +4,30 @@
     <dimen name="activity_vertical_margin">8dp</dimen>
     <dimen name="activity_left_margin">16dp</dimen>
     <dimen name="activity_right_margin">16dp</dimen>
+
+    <dimen name="single_line_list_vertical_margin">8dp</dimen>
+
+    <dimen name="weather_current_grid_left_margin">32dp</dimen>
+    <dimen name="single_line_list_item_height">48dp</dimen>
+
+    <dimen name="default_toolbar_elevation">4dp</dimen>
+    <dimen name="default_card_elevation">6dp</dimen>
+    <dimen name="default_card_corner_radius">4dp</dimen>
+    <dimen name="current_grid_high_temp_text_size">65sp</dimen>
+    <dimen name="current_grid_low_temp_text_size">25sp</dimen>
+    <dimen name="current_grid_summary_text_size">15sp</dimen>
+    <dimen name="grid_detail_extras_text_size">16sp</dimen>
+
+    <dimen name="grid_high_temp_text_size">72sp</dimen>
+    <dimen name="grid_low_temp_text_size">36sp</dimen>
+    <dimen name="grid_icon_size">85dp</dimen>
+
+    <dimen name="card_horizontal_margin">40dp</dimen>
+    <dimen name="card_vertical_padding_large">40dp</dimen>
+    <dimen name="card_vertical_padding_medium">24dp</dimen>
+    <dimen name="card_vertical_padding_small">16dp</dimen>
+    <dimen name="card_vertical_padding_xsmall">8dp</dimen>
+
+    <dimen name="list_icon">40dp</dimen>
+
 </resources>

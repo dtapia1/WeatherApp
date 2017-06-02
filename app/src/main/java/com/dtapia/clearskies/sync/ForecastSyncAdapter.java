@@ -2,19 +2,15 @@ package com.dtapia.clearskies.sync;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SyncRequest;
 import android.content.SyncResult;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
@@ -23,16 +19,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.text.format.Time;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.dtapia.clearskies.BuildConfig;
 import com.dtapia.clearskies.R;
 import com.dtapia.clearskies.data.WeatherContract;
-import com.dtapia.clearskies.ui.MainActivity;
 import com.dtapia.clearskies.ui.Utility;
 
 import org.json.JSONArray;
@@ -47,6 +39,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -60,7 +53,6 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
     public static final int SYNC_FLEXTIME = SYNC_INTERVAL / 3;
     private static final long DAY_IN_MILLIS = 1000 * 60 * 60 * 24;
     private static final int WEATHER_NOTIFICATION_ID = 3004;
-
 
     private static final String[] NOTIFY_WEATHER_PROJECTION = new String[]{
             WeatherContract.WeatherEntry.COLUMN_ICON_ID,
@@ -147,6 +139,7 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
                 COORDINATES = LATITUDE + "," + LONGITUDE;
                 CITY_NAME = address.getLocality();
 
+                Log.d(LOG_TAG, "latitude: " + LATITUDE + " longitude: " + LONGITUDE);
                 if(CITY_NAME != null){
                     Utility.storeCityName(getContext(),CITY_NAME );
                 }else{
@@ -246,7 +239,6 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
         // Now we have a String representing the complete forecast in JSON Format.
         // Fortunately parsing is easy:  constructor takes the JSON string and converts it
         // into an Object hierarchy for us.
-
         try {
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
             JSONObject currentObject = forecastJson.getJSONObject(CURRENTLY);
@@ -265,16 +257,16 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
             Date date = new Date();
             String dateString = Utility.getFormattedDbDate(date);
 
-            Long timeInMillis = System.currentTimeMillis();
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
+            Long timeInMillis = cal.getTimeInMillis();
+
+            //Long timeInMillis = System.currentTimeMillis();
             String dateString2 = String.valueOf(timeInMillis);
-
-
-            Time dayTime = new Time();
-            dayTime.setToNow();
-            // we start at the day returned by local time. Otherwise this is a mess.
-            int julianStartDay = Time.getJulianDay(System.currentTimeMillis(), dayTime.gmtoff);
-            // now we work exclusively in UTC
-            dayTime = new Time();
 
             // Insert current weather information into the database
             saveCurrentForecast(currentObject, currentDay, locationId, dateString);
@@ -289,11 +281,6 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
             Vector<ContentValues> dayVector = new Vector<ContentValues>(dayArray.length());
             saveDailyForecast(dayArray, dayVector, locationId, dateString);
             insertArrayData(dayVector, dateString2, DAILY);
-
-            /*getContext().getContentResolver().delete(WeatherContract.WeatherEntry.CONTENT_URI,
-                    WeatherContract.WeatherEntry.COLUMN_INSERT_DATE + " < ? AND " +
-                            WeatherContract.WeatherEntry.COLUMN_WEATHER_TYPE + " = ? ",
-                    new String[]{dateString, DAILY});*/
 
             Log.d(LOG_TAG, "Sync Complete.");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
@@ -486,7 +473,7 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
 
-    private void notifyWeather() {
+    /*private void notifyWeather() {
         Context context = getContext();
         //checking the last update and notify if it' the first of the day
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -516,8 +503,8 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
 
                     //int iconId = Utility.getIconResourceForWeatherCondition(icon);
                     Resources resources = context.getResources();
-                    /*Bitmap largeIcon = BitmapFactory.decodeResource(resources,
-                            Utility.getArtResourceForWeatherCondition(icon));*/
+                    *//*Bitmap largeIcon = BitmapFactory.decodeResource(resources,
+                            Utility.getArtResourceForWeatherCondition(icon));*//*
                     String title = context.getString(R.string.app_name);
 
                     // Define the text of the forecast.
@@ -566,7 +553,7 @@ public class ForecastSyncAdapter extends AbstractThreadedSyncAdapter {
                 cursor.close();
             }
         }
-    }
+    }*/
 
     /**
      * Helper method to handle insertion of a new location in the weather database.

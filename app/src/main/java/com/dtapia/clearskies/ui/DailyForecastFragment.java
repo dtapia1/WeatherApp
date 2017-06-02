@@ -15,6 +15,8 @@
  */
 package com.dtapia.clearskies.ui;
 
+import android.app.Activity;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,18 +26,25 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.AbsListView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.dtapia.clearskies.R;
 import com.dtapia.clearskies.adapters.DayAdapter;
 import com.dtapia.clearskies.data.WeatherContract;
 import com.dtapia.clearskies.sync.ForecastSyncAdapter;
+
+import java.util.Calendar;
+import java.util.Date;
 
 
 public class DailyForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -43,10 +52,10 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
     private DayAdapter mDayAdapter;
     private ListView mDailyListView;
     private RecyclerView mRecyclerView;
-    private int mPosition = RecyclerView.NO_POSITION;
-    //private RecyclerView mRecyclerView;
-    //private int mPosition = RecyclerView.NO_POSITION;
-
+    private boolean mUseTodayLayout, mAutoSelectView;
+    private int mChoiceMode;
+    private long mInitialSelectedDate = -1;
+    private static final String SELECTED_KEY = "selected_position";
 
     private String mLocation;
     private String mUnits;
@@ -87,7 +96,7 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        public void onItemSelected(Uri dateUri);
+        public void onItemSelected(Uri dateUri, DayAdapter.DayViewHolder vh);
     }
 
     public DailyForecastFragment() {
@@ -100,7 +109,6 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
         setHasOptionsMenu(true);
         mLocation = Utility.getPreferredLocation(getActivity());
         mUnits = Utility.getPreferredUnits(getActivity());
-
     }
 
     @Override
@@ -112,7 +120,6 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
         if (location != null && !location.equals(mLocation)
                 || units != null && !units.equals(mUnits)) {
             onLocationChanged();
-
             mLocation = location;
             mUnits = units;
         }
@@ -129,28 +136,42 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
+       /* if (id == R.id.action_refresh) {
             updateWeather();
             return true;
-        }
+        }*/
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onInflate(Activity activity, AttributeSet attrs, Bundle savedInstanceState) {
+        super.onInflate(activity, attrs, savedInstanceState);
+        TypedArray a = activity.obtainStyledAttributes(attrs, R.styleable.ForecastFragment,
+                0, 0);
+        mChoiceMode = a.getInt(R.styleable.ForecastFragment_android_choiceMode, AbsListView.CHOICE_MODE_NONE);
+        mAutoSelectView = a.getBoolean(R.styleable.ForecastFragment_autoSelectView, false);
+        //mHoldForTransition = a.getBoolean(R.styleable.ForecastFragment_sharedElementTransitions, false);
+        a.recycle();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.daily_forecast_fragment, container, false);
-
+        View rootView = inflater.inflate(R.layout.fragment_daily_forecast, container, false);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_daily_forecast);
-
         //set layout manager
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        if(getResources().getBoolean(R.bool.landscape_mode)){
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        }else{
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        }
         View emptyView = rootView.findViewById(R.id.recyclerview_forecast_empty);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
+
 
         // The DayAdapter will take data from a source and
         // use it to populate the RecyclerView it's attached to.
@@ -160,19 +181,17 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
                 String locationSetting = Utility.getPreferredLocation(getActivity());
                 ((Callback) getActivity())
                         .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
-                                locationSetting, date)
+                                locationSetting, date), vh
                         );
-                mPosition = vh.getAdapterPosition();
             }
-        }, emptyView);
+        }, emptyView, mChoiceMode);
 
-        /*// The DayAdapter will take data from a source and
-        // use it to populate the RecyclerView it's attached to.
-        mDayAdapter = new DayAdapter(getActivity(), emptyView);*/
+        if (savedInstanceState != null) {
+            mDayAdapter.onRestoreInstanceState(savedInstanceState);
+        }
 
         // specify an adapter (see also next example)
         mRecyclerView.setAdapter(mDayAdapter);
-
         return rootView;
     }
 
@@ -196,26 +215,28 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onSaveInstanceState(Bundle outState) {
         // When tablets rotate, the currently selected list item needs to be saved.
-        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
-        // so check for that before storing.
-        /*if (mPosition != ListView.INVALID_POSITION) {
-            outState.putInt(SELECTED_KEY, mPosition);
-        }*/
+        mDayAdapter.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        // This is called when a new Loader needs to be created.  This
-        // fragment only uses one loader, so we don't care about checking the id.
 
         // Sort order:  Ascending, by date.
         String sortOrder = WeatherContract.WeatherEntry.COLUMN_CURRENT_TIME + " ASC";
+       // Long currentTime = System.currentTimeMillis();
+        Date date = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Long time = cal.getTimeInMillis();
 
-        Long currentTime = System.currentTimeMillis();
         String locationSetting = Utility.getPreferredLocation(getActivity());
         Uri weatherForLocationUri = WeatherContract.WeatherEntry.buildWeatherLocationWithWeatherTypeAndDate(
-                locationSetting, ForecastSyncAdapter.DAILY, currentTime);
+                locationSetting, ForecastSyncAdapter.DAILY, time);
         return new CursorLoader(getActivity(),
                 weatherForLocationUri,
                 DAILY_FORECAST_COLUMNS,
@@ -227,11 +248,85 @@ public class DailyForecastFragment extends Fragment implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mDayAdapter.swapCursor(data);
+        updateEmptyView();
+        if ( data.getCount() == 0 ) {
+            getActivity().supportStartPostponedEnterTransition();
+        } else {
+            mRecyclerView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                @Override
+                public boolean onPreDraw() {
+                    // Since we know we're going to get items, we keep the listener around until
+                    // we see Children.
+                    if (mRecyclerView.getChildCount() > 0) {
+                        mRecyclerView.getViewTreeObserver().removeOnPreDrawListener(this);
+                        int position = mDayAdapter.getSelectedItemPosition();
+                        if (position == RecyclerView.NO_POSITION &&
+                                -1 != mInitialSelectedDate) {
+                            Cursor data = mDayAdapter.getCursor();
+                            int count = data.getCount();
+                            int dateColumn = data.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_CURRENT_TIME);
+                            for ( int i = 0; i < count; i++ ) {
+                                data.moveToPosition(i);
+                                if ( data.getLong(dateColumn) == mInitialSelectedDate ) {
+                                    position = i;
+                                    break;
+                                }
+                            }
+                        }
+                        if (position == RecyclerView.NO_POSITION) position = 0;
+                        // If we don't need to restart the loader, and there's a desired position to restore
+                        // to, do so now.
+                        mRecyclerView.smoothScrollToPosition(position);
+                        RecyclerView.ViewHolder vh = mRecyclerView.findViewHolderForAdapterPosition(position);
+                        if (null != vh && mAutoSelectView) {
+                            mDayAdapter.selectView(vh);
+                        }
+                       /* if ( mHoldForTransition ) {
+                            getActivity().supportStartPostponedEnterTransition();
+                        }*/
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mDayAdapter.swapCursor(null);
+    }
+
+    /*
+        Updates the empty list view with contextually relevant information that the user can
+        use to determine why they aren't seeing weather.
+     */
+    private void updateEmptyView() {
+        if ( mDayAdapter.getItemCount() == 0 ) {
+            TextView tv = (TextView) getView().findViewById(R.id.recyclerview_forecast_empty);
+            if ( null != tv ) {
+                // if cursor is empty, why? do we have an invalid location
+                int message = R.string.empty_forecast_list;
+                @ForecastSyncAdapter.LocationStatus int location = Utility.getLocationStatus(getActivity());
+                switch (location) {
+                    case ForecastSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                        message = R.string.empty_forecast_list_server_down;
+                        break;
+                    case ForecastSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                        message = R.string.empty_forecast_list_server_error;
+                        break;
+                    case ForecastSyncAdapter.LOCATION_STATUS_INVALID:
+                        message = R.string.empty_forecast_list_invalid_location;
+                        break;
+                    default:
+                        if (!Utility.isNetworkAvailable(getActivity())) {
+                            message = R.string.empty_forecast_list_no_network;
+                        }
+                }
+                tv.setText(message);
+            }
+        }
     }
 
 }

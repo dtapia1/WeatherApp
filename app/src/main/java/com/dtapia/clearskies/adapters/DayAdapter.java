@@ -1,63 +1,46 @@
 package com.dtapia.clearskies.adapters;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.dtapia.clearskies.R;
-import com.dtapia.clearskies.weather.Day;
+import com.dtapia.clearskies.data.WeatherContract;
+import com.dtapia.clearskies.ui.DailyForecastFragment;
+import com.dtapia.clearskies.ui.Utility;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+
+import static android.R.attr.choiceMode;
+import static com.dtapia.clearskies.R.layout.list_item_daily;
 
 /**
  * Created by Daniel on 7/28/2015.
  */
 
-public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
+public class DayAdapter extends RecyclerView.Adapter <DayAdapter.DayViewHolder> {
 
-    private Day[] mDays;
-    private Context mContext;
-    private String mSummary;
-
-    public DayAdapter(Context context, Day[] days) {
-        mContext = context;
-        mDays = days;
-    }
-
-    @Override
-    public DayViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.daily_list_item, viewGroup, false);
-        DayViewHolder viewHolder = new DayViewHolder(view);
-
-        return viewHolder;
-    }
-
-    @Override
-    public void onBindViewHolder(DayViewHolder dayViewHolder, int i) {
-
-        dayViewHolder.bindDay(mDays[i], i);
-    }
-
-    @Override
-    public int getItemCount() {
-        return mDays.length;
-    }
+    private Cursor mCursor;
+    final private Context mContext;
+    final private DayAdapterOnClickHandler mClickHandler;
+    final private View mEmptyView;
+    final private ItemChoiceManager mICM;
 
     public class DayViewHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener {
+            implements View.OnClickListener{
 
-        @Bind(R.id.dayNameLabel) TextView mDayNameLabel;
-        @Bind(R.id.dateLabel) TextView mDateLabel;
-        @Bind(R.id.highTemperatureLabel) TextView mHighTemperatureLabel;
-        @Bind(R.id.lowTemperatureLabel) TextView mLowTemperatureLabel;
-        @Bind(R.id.iconImageView) ImageView mIconImageView;
+        @Bind(R.id.dayNameLabel) public TextView dayNameView;
+        @Bind(R.id.shortSummaryLabel) public TextView dayShortSummaryView;
+        @Bind(R.id.iconImageView) public ImageView iconView;
+        @Bind(R.id.highTemperatureLabel) public TextView highTempView;
+        @Bind(R.id.lowTemperatureLabel) public TextView lowTempView;
 
         public DayViewHolder(View itemView) {
             super(itemView);
@@ -65,29 +48,100 @@ public class DayAdapter extends RecyclerView.Adapter<DayAdapter.DayViewHolder> {
             itemView.setOnClickListener(this);
         }
 
-        public void bindDay(Day day, int i) {
-
-            String dayString = day.getDayOfTheWeek();
-            String monthString = day.getMonth().substring(0,3); //extract first 3 letters of month name
-            if (i == 0) {
-                mDayNameLabel.setText("Today");
-
-            } else {
-                mDayNameLabel.setText(dayString);
-            }
-            mDateLabel.setText(monthString + day.getDate());
-            mHighTemperatureLabel.setText(day.getTemperatureMax() + "");
-            mLowTemperatureLabel.setText(day.getTemperatureMin() + "");
-            mIconImageView.setImageResource(day.getIconId());
-            mSummary = day.getSummary();
-        }
-
         @Override
-        public void onClick(View v) {
-            // Retrieve accurate position of current view
-            String summary = String.format("%s", mDays[getAdapterPosition()].getSummary().toString());
+        public void onClick(View view) {
+            int adapterPosition = getAdapterPosition();
+            mCursor.moveToPosition(adapterPosition);
+            int dateColumnIndex = mCursor.getColumnIndex(WeatherContract.WeatherEntry.COLUMN_CURRENT_TIME);
+            mClickHandler.onClick(mCursor.getLong(dateColumnIndex), this);
+            mICM.onClick(this);
+        }
+    }
 
-            Toast.makeText(mContext, summary, Toast.LENGTH_LONG).show();
+    public static interface DayAdapterOnClickHandler {
+        void onClick(Long date, DayViewHolder vh);
+    }
+
+    public DayAdapter(Context context, DayAdapterOnClickHandler handler, View emptyView, int choiceMo) {
+        mContext = context;
+        mClickHandler = handler;
+        mEmptyView = emptyView;
+        mICM = new ItemChoiceManager(this);
+        mICM.setChoiceMode(choiceMode);
+    }
+
+    @Override
+    public DayViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(list_item_daily, viewGroup, false);
+        view.setFocusable(true);
+
+        return new DayViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(DayViewHolder viewHolder, int position) {
+        mCursor.moveToPosition(position);
+
+        //boolean isMetric = Utility.isMetric(context);
+        Long dateInMillis = mCursor.getLong(DailyForecastFragment.COL_WEATHER_DATE);
+
+        String dayOfTheWeek = Utility.getDayName(mContext, dateInMillis);
+        viewHolder.dayNameView.setText(dayOfTheWeek);
+
+        /*String monthDay = Utility.getFormattedMonthDay(mContext, dateInMillis);
+        viewHolder.dateView.setText(monthDay);*/
+
+        String iconDescription = mCursor.getString(DailyForecastFragment.COL_WEATHER_ICON_ID);
+        viewHolder.iconView.setImageResource(Utility.getIconResourceForWeatherCondition(iconDescription));
+
+        String shortSummary = Utility.getDailySummary(iconDescription);
+        viewHolder.dayShortSummaryView.setText(shortSummary);
+
+        double dailyHighTemp = mCursor.getDouble(DailyForecastFragment.COL_WEATHER_HIGH_TEMP);
+        viewHolder.highTempView.setText(Utility.formatTemperature(mContext, dailyHighTemp));
+
+        double dailyLowTemp = mCursor.getDouble(DailyForecastFragment.COL_WEATHER_LOW_TEMP);
+        viewHolder.lowTempView.setText(Utility.formatTemperature(mContext, dailyLowTemp));
+
+        //For accessibility, add a content description to the icon field
+        viewHolder.iconView.setContentDescription(iconDescription);
+        mICM.onBindViewHolder(viewHolder, position);
+    }
+
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        mICM.onRestoreInstanceState(savedInstanceState);
+    }
+
+    public void onSaveInstanceState(Bundle outState) {
+        mICM.onSaveInstanceState(outState);
+    }
+
+
+    public int getSelectedItemPosition() {
+        return mICM.getSelectedItemPosition();
+    }
+
+    @Override
+    public int getItemCount() {
+        if ( null == mCursor ) return 0;
+        return mCursor.getCount();
+    }
+
+    public void swapCursor(Cursor newCursor) {
+        mCursor = newCursor;
+        notifyDataSetChanged();
+        mEmptyView.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+    }
+
+    public Cursor getCursor() {
+        return mCursor;
+    }
+
+    public void selectView(RecyclerView.ViewHolder viewHolder) {
+        if ( viewHolder instanceof DayViewHolder ) {
+            DayViewHolder vfh = (DayViewHolder)viewHolder;
+            vfh.onClick(vfh.itemView);
         }
     }
 }
+

@@ -1,0 +1,90 @@
+
+<!-- Detail Layout for Grid -->
+<android.support.v7.widget.GridLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_centerVertical="true"
+    android:background="@drawable/bg_gradient_day"
+    tools:background="@drawable/bg_gradient_day"
+    app:columnCount="2" android:padding="@dimen/activity_right_margin">
+
+    <!--<android.support.v4.widget.Space
+        app:layout_columnSpan="2"
+        app:layout_rowWeight="1" />-->
+
+    <TextView
+        android:id="@+id/dateLabel"
+        android:layout_width="0dp"
+        android:fontFamily="sans-serif"
+        android:gravity="center_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/primary_white"
+        app:layout_columnSpan="2"
+        app:layout_columnWeight="1"
+        app:layout_column="0"
+        app:layout_gravity="fill_horizontal"
+        app:layout_row="0"
+        tools:text="April 03"/>
+
+    <ImageView
+        android:id="@+id/iconImageView"
+        android:layout_width="0dp"
+        android:adjustViewBounds="true"
+        android:maxHeight="@dimen/grid_icon_size"
+        android:maxWidth="@dimen/grid_icon_size"
+        android:transitionName="@string/detail_icon_transition_name"
+        app:layout_column="1"
+        app:layout_columnWeight="1"
+        app:layout_gravity="fill_horizontal"
+        app:layout_row="1"
+        tools:src="@drawable/ic_weather_clear"/>
+
+    <TextView
+        android:id="@+id/temperatureLabel"
+        android:layout_width="0dp"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_horizontal"
+        android:textColor="@color/primary_white"
+        android:textSize="@dimen/grid_high_temp_text_size"
+        app:layout_column="0"
+        app:layout_gravity="fill_horizontal"
+        app:layout_row="1"
+        app:layout_columnWeight="1"
+        tools:text="86"/>
+    <TextView
+        android:id="@+id/lowTemperatureLabel"
+        android:layout_width="0dp"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_horizontal"
+        android:textColor="@color/secondary_white"
+        android:textSize="@dimen/grid_low_temp_text_size"
+        app:layout_column="0"
+        app:layout_columnWeight="1"
+        app:layout_gravity="fill_horizontal"
+        app:layout_row="2"
+        tools:text="55"/>
+
+    <TextView
+        android:id="@+id/shortSummaryLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:gravity="center_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/primary_white"
+        app:layout_column="1"
+        app:layout_columnWeight="1"
+        app:layout_row="2"
+        tools:text="Rainy"/>
+
+    <!--<android.support.v4.widget.Space
+        android:layout_height="@dimen/abc_list_item_padding_horizontal_material"
+        app:layout_columnSpan="2"
+        app:layout_columnWeight="1"
+        app:layout_rowWeight="1" />-->
+
+</android.support.v7.widget.GridLayout>
+

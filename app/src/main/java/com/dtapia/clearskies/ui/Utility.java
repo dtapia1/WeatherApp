@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Utility {
     public static String getPreferredLocation(Context context) {
@@ -94,8 +96,8 @@ public class Utility {
         if (isMetric(context)) {
             temperature = (temperature - 32) * 5/9;
         }
-
         // For presentation, assume the user doesn't care about tenths of a degree.
+        //String temp = String.format(context.getString(R.string.format_temperature), temperature);
         return String.format(context.getString(R.string.format_temperature), temperature);
     }
 
@@ -240,17 +242,12 @@ public class Utility {
     }
 
     public static String getFormattedHour(Long time){
-        SimpleDateFormat formatter = new SimpleDateFormat("h a");
+        SimpleDateFormat formatter = new SimpleDateFormat("hh:00 a");
         Date date = new Date(time);
 
         String hour = formatter.format(date);
-       /* char firstInt = hour.charAt(0);
-        if(firstInt == '0'){
-            hour = hour.replaceFirst("0", "  "); //remove leading zero
-            //hour = hour.replaceFirst(" ", "   "); //add spacing between hour and am/pm marker
-        }*/
-        //hour = String.format("%15s", hour);
-        return hour;
+        //return hour;
+        return String.format("%5s", hour);
     }
 
     public static String getFormattedTime(Long time){
@@ -275,9 +272,6 @@ public class Utility {
         else if (iconString.equals("clear-night")) {
             iconId = R.drawable.ic_weather_clear_night;
         }
-        /*else if (iconString.equals("rain") && currentTime >= sunsetTime) {
-            iconId = R.drawable.ic_weather_rain_night;
-        }*/
         else if (iconString.equals("rain")) {
             iconId = R.drawable.ic_weather_rain_day;
         }
@@ -347,6 +341,10 @@ public class Utility {
         else if (iconString.equals("partly-cloudy-night")) {
             iconId = R.drawable.ic_weather_clouds_night;
         }
+        else if (iconString.equals("thunderstorm")) {
+            iconId = R.drawable.ic_thunderstorm;
+        }
+
         return iconId;
     }
 
@@ -386,6 +384,38 @@ public class Utility {
         SharedPreferences.Editor spe = sp.edit();
         spe.putInt(c.getString(R.string.pref_location_status_key), ForecastSyncAdapter.LOCATION_STATUS_UNKNOWN);
         spe.apply();
+    }
+
+    static public String getDailySummary(String iconString){
+        String summary;
+
+        if(weatherSummary.containsKey(iconString)){
+            summary = weatherSummary.get(iconString);
+        }else
+        {
+            summary = "";
+        }
+
+        return summary;
+    }
+
+
+    private static final Map<String, String> weatherSummary;
+    static {
+        weatherSummary = new HashMap<String, String>();
+        weatherSummary.put("clear-day", "Clear");
+        weatherSummary.put("clear-night", "Clear");
+        weatherSummary.put("rain", "Rain");
+        weatherSummary.put("snow", "Snow");
+        weatherSummary.put("sleet", "Sleet");
+        weatherSummary.put("wind", "Breezy");
+        weatherSummary.put("fog", "Foggy");
+        weatherSummary.put("cloudy", "Cloudy");
+        weatherSummary.put("partly-cloudy-day", "Partly Cloudy");
+        weatherSummary.put("partly-cloudy-night", "Partly Cloudy");
+        weatherSummary.put("hail", "Hail");
+        weatherSummary.put("thunderstorm", "Thunderstorm");
+        weatherSummary.put("tornado", "Tornado");
     }
 
 }

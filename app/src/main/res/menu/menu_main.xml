@@ -3,9 +3,9 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="com.dtapia.clearskies.ui.MainFragment">
 
-    <item
+   <!-- <item
         android:id="@+id/refreshData"
         android:title="Refresh"
-        app:showAsAction="never"/>
+        app:showAsAction="never"/>-->
 
 </menu>

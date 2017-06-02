@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.GridLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/detail_additional_pane"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@color/primary_white"
+    app:columnCount="2"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    android:paddingTop="16dp">
+
+
+    <android.support.v4.widget.Space
+        app:layout_columnSpan="2"
+        app:layout_rowWeight="1" />
+
+    <TextView
+        android:id="@+id/precipLabel"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_horizontal"
+        app:layout_gravity="fill_horizontal"
+        android:text="Precipitation"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/secondary_text"/>
+
+    <TextView
+        android:id="@+id/precipValue"
+        android:fontFamily="sans-serif"
+        android:gravity="right"
+        app:layout_gravity="fill_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/primary_text"
+        tools:text="38%"/>
+
+    <TextView
+        android:id="@+id/humidityLabel"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_vertical"
+        android:text="Humidity"
+        app:layout_gravity="fill_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/secondary_text"
+        android:layout_marginTop="4dp"/>
+
+    <TextView
+        android:id="@+id/humidityValue"
+        android:gravity="right"
+        android:fontFamily="sans-serif"
+        app:layout_gravity="fill_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/primary_text"
+        tools:text="12%" />
+
+    <TextView
+        android:id="@+id/pressureLabel"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_vertical"
+        android:text="Pressure"
+        app:layout_gravity="fill_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/secondary_text"
+        android:layout_marginTop="4dp"/>
+
+    <TextView
+        android:id="@+id/pressureValue"
+        android:gravity="right"
+        app:layout_gravity="fill_horizontal"
+        android:fontFamily="sans-serif"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textColor="@color/primary_text"
+        tools:text="998 hPa" />
+
+    <TextView
+        android:id="@+id/windLabel"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center_vertical"
+        android:text="Wind"
+        app:layout_gravity="fill_horizontal"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:textColor="@color/secondary_text"
+        android:layout_marginTop="4dp"/>
+
+    <TextView
+        android:id="@+id/windValue"
+        android:gravity="right"
+        app:layout_gravity="fill_horizontal"
+        android:textColor="@color/primary_text"
+        android:fontFamily="sans-serif"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        tools:text="4 mph SW" />
+
+    <android.support.v4.widget.Space
+        app:layout_columnSpan="2"
+        app:layout_rowWeight="1" />
+
+    <TextView
+        android:id="@+id/forecastAttribution"
+        android:fontFamily="sans-serif"
+        android:gravity="right"
+        android:paddingTop="16dp"
+        android:text="Powered by Dark Sky"
+        android:textColor="@color/secondary_text"
+        android:textSize="10dp"
+        android:textStyle="italic"
+        app:layout_column="1"
+        app:layout_columnSpan="1"
+        app:layout_columnWeight="1"
+        app:layout_row="6"
+        tools:text="Powered by Dark Sky"/>
+
+</android.support.v7.widget.GridLayout>
